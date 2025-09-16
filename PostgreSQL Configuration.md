@@ -190,8 +190,12 @@ docker exec postgres-config df -h
 ### บันทึกผลการทดลอง
 ```
 1. อธิบายหน้าที่คำสั่ง docker exec postgres-config free, docker exec postgres-config df
+    - docker exec postgres-config free คือ การดูการใช้ หน่วยความจำ (RAM) ในคอนเทนเนอร์
+    - docker exec postgres-config df คือ การดูการใช้ พื้นที่ดิสก์ (filesystem usage)
 2. option -h ในคำสั่งมีผลอย่างไร
+    - แสดงผลลัพธ์ในรูปแบบที่อ่านง่าย (human-readable) เช่น MB, GB แทนที่จะเป็น byte
 3. docker exec postgres-config nproc  แสดงค่าผลลัพธ์อย่างไร
+    - แสดงจำนวน CPU cores ที่มีอยู่ในคอนเทนเนอร์
 ```
 #### 1.2 เชื่อมต่อและตรวจสอบสถานะปัจจุบัน
 ```bash
@@ -210,7 +214,10 @@ SHOW data_directory;
 ### บันทึกผลการทดลอง
 ```
 1. ตำแหน่งที่อยู่ของไฟล์ configuration อยู่ที่ตำแหน่งใด
+    - /var/lib/postgresql/data/postgresql.conf
 2. ตำแหน่งที่อยู่ของไฟล์ data อยู่ที่ตำแหน่งใด
+    - /var/lib/postgresql/data
+    
 ```
 -- ตรวจสอบการตั้งค่าปัจจุบัน
 SELECT name, setting, unit, category, short_desc 
@@ -221,9 +228,8 @@ WHERE name IN (
 );
 ```
 ### บันทึกผลการทดลอง
-```
-บันทึกรูปผลของ configuration ทั้ง 6 ค่า 
-```
+
+![alt text](image.png)
 
 ### Step 2: การปรับแต่งพารามิเตอร์แบบค่อยเป็นค่อยไป
 
@@ -255,11 +261,8 @@ WHERE name = 'shared_buffers';
 docker exec -it -u postgres postgres-config pg_ctl restart -D /var/lib/postgresql/data -m fast
 
 ### ผลการทดลอง
-```
-รูปผลการเปลี่ยนแปลงค่า pending_restart
-รูปหลังจาก restart postgres
 
-```
+![alt text](image-1.png)
 
 #### 2.2 ปรับแต่ง Work Memory (ไม่ต้อง restart)
 ```sql
@@ -280,9 +283,8 @@ FROM pg_settings
 WHERE name = 'work_mem';
 ```
 ### ผลการทดลอง
-```
-รูปผลการเปลี่ยนแปลงค่า work_mem
-```
+
+![alt text](image-2.png)
 
 #### 3.3 ปรับแต่ง Maintenance Work Memory
 ```sql
@@ -297,9 +299,8 @@ SELECT pg_reload_conf();
 SHOW maintenance_work_mem;
 ```
 ### ผลการทดลอง
-```
-รูปผลการเปลี่ยนแปลงค่า maintenance_work_mem
-```
+
+![alt text](image-3.png)
 
 #### 3.4 ปรับแต่ง WAL Buffers
 ```sql
@@ -322,9 +323,8 @@ docker exec -it postgres-config psql -U postgres
 SHOW wal_buffers;
 ```
 ### ผลการทดลอง
-```
-รูปผลการเปลี่ยนแปลงค่า wal_buffers
-```
+
+![alt text](image-4.png)
 
 #### 3.5 ปรับแต่ง Effective Cache Size
 ```sql
@@ -339,9 +339,8 @@ SELECT pg_reload_conf();
 SHOW effective_cache_size;
 ```
 ### ผลการทดลอง
-```
-รูปผลการเปลี่ยนแปลงค่า effective_cache_size
-```
+
+![alt text](image-5.png)
 
 ### Step 4: ตรวจสอบผล
 
