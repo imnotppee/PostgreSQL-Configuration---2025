@@ -367,9 +367,8 @@ WHERE name IN (
 ORDER BY name;
 ```
 ### ผลการทดลอง
-```
-รูปผลการลัพธ์การตั้งค่า
-```
+
+![alt text](image-6.png)
 
 ### Step 5: การสร้างและทดสอบ Workload
 
@@ -412,10 +411,22 @@ LIMIT 1000;
 ```
 ### ผลการทดลอง
 ```
-1. คำสั่ง EXPLAIN(ANALYZE,BUFFERS) คืออะไร 
-2. รูปผลการรัน
-3. อธิบายผลลัพธ์ที่ได้
+1. คำสั่ง EXPLAIN(ANALYZE,BUFFERS) คืออะไร
+    - EXPLAIN → แสดง query plan ของ PostgreSQL ว่าจะดึงข้อมูลยังไง (ใช้ index, sequential scan ฯลฯ)
+    - ANALYZE → รัน query จริง แล้วแสดง เวลาจริง (execution time) + จำนวนแถวจริงที่ประมวลผล
+    - BUFFERS → แสดงการใช้ I/O buffer เช่น อ่านจาก shared_buffers กี่บล็อก, อ่านจากดิสก์กี่บล็อก
 ```
+2. รูปผลการรัน
+![alt text](image-7.png)
+
+```
+3. อธิบายผลลัพธ์ที่ได้
+    - ใช้ Parallel Seq Scan อ่านตารางใหญ่  2 worker
+    - ข้อมูลถูก Sort (top-N heapsort) แล้วเลือกแค่ 1000 rows (LIMIT)
+    - Buffers hit ทั้งหมด → อ่านจาก RAM ไม่แตะดิสก์
+    - เวลา: วางแผน 0.28 ms, รันจริง ~95 ms
+```
+
 ```sql
 -- ทดสอบ Hash operation
 EXPLAIN (ANALYZE, BUFFERS)
@@ -427,10 +438,14 @@ LIMIT 100;
 ```
 
 ### ผลการทดลอง
-```
+
 1. รูปผลการรัน
-2. อธิบายผลลัพธ์ที่ได้ 
+![alt text](image-8.png)
+```
+2. อธิบายผลลัพธ์ที่ได้
+    - คำสั่งนี้หากลุ่มที่ซ้ำกัน ใช้แค่ index ทำให้เร็ว ได้ผลลัพธ์ 100 แถว
 3. การสแกนเป็นแบบใด เกิดจากเหตุผลใด
+    - เป็น Index Only Scan เพราะมี index ช่วย ไม่ต้องอ่านตารางจริง
 ```
 #### 5.3 การทดสอบ Maintenance Work Memory
 ```sql
